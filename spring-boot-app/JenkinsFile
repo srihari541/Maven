@@ -17,8 +17,12 @@ docker {
       steps {
         sh 'ls -ltr'
         // build the project and create a JAR file
-        sh 'cd spring-boot-app' // trying to genarate jar file 
-        sh 'mvn clean package'
+        sh ''' 
+		cd spring-boot-app 
+		''' // trying to genarate jar file 
+        sh '''
+		mvn clean package
+		'''
       }
     }
     stage('Static Code Analysis') {
@@ -27,17 +31,23 @@ docker {
       }
       steps {
         withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
-          sh 'cd spring-boot-app'
-          sh 'mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
+          sh ''' 
+		  cd spring-boot-app 
+		  '''
+          sh '''
+		  mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}
+		  '''
         }
       }
     }
-    stage('Build and Push Docker Image') {
+     stage('Build Docker Image') {
       steps {
         DOCKER_IMAGE = "srihari541/ultimate-cicd:${BUILD_NUMBER}"
         // DOCKERFILE_LOCATION = "spring-boot-app/Dockerfile"
         REGISTRY_CREDENTIALS = credentials('docker-cred')
-        sh 'cd spring-boot-app && docker build -t ${DOCKER_IMAGE} .'
+        sh '''
+		cd spring-boot-app && docker build -t ${DOCKER_IMAGE} .
+		'''
       }
 	 }
 	  stage('Scan Docker Image with Trivy') {
@@ -45,9 +55,9 @@ docker {
                 script {
                     echo "Running Trivy vulnerability scan..."
                     // FAILS build if HIGH/CRITICAL found
-                    sh """
+                    sh '''
                         trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress ${DOCKER_IMAGE}:${BUILD_NUMBER}
-                    """
+                    '''
                 }
             }
         }
@@ -62,16 +72,32 @@ docker {
                 }
             }
         }
-	  
-        stage ('Deploy helm java helm chart on eks') {
+		
+	    stage('owasp') {
+            steps {
+               dependencyCheck additionalArguments: '--format HTML', odcInstallation: 'Dpchk'
+            }
+
+            
+        }	
+        stage ('Deploy kyverno helm chart on eks') {
 		 steps {
 		   scripts {
-		     sh ('aws eks update-kubeconfig --name demo-eks-cluster --region us-east-1')
-			 sh " kubectl get ns"
-			 sh "helm install java ./java-chart"
+		     sh '''
+			 aws eks update-kubeconfig --name demo-eks-cluster --region us-east-1
+			 '''
+			 sh '''
+			 kubectl get ns
+			 '''
+			 sh '''
+			 helm install java ./java-chart
+			 '''
+			 sh '''
+			 cd Kyverno && kubectl creat -f .
+			 '''
 			   
 			      }
 			}
 		}
 	}
-}
+}	

@@ -5,10 +5,10 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: srihari541/ultimate-cicd-pipeline
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "v1"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -40,8 +40,11 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
   port: 80
+  targetPort: 8080
+  protocol: TCP
+  name: java-chart
 
 ingress:
   enabled: false

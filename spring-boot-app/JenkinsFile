@@ -32,11 +32,12 @@ docker {
         }
       }
     }
-    stage('Build Docker Image') {
+    stage('Build and Push Docker Image') {
       steps {
         DOCKER_IMAGE = "srihari541/ultimate-cicd:${BUILD_NUMBER}"
-        sh 'cd spring-boot-app' 
-        Sh 'docker build -t ${DOCKER_IMAGE} .'
+        // DOCKERFILE_LOCATION = "spring-boot-app/Dockerfile"
+        REGISTRY_CREDENTIALS = credentials('docker-cred')
+        sh 'cd spring-boot-app && docker build -t ${DOCKER_IMAGE} .'
       }
 	 }
 	  stage('Scan Docker Image with Trivy') {
@@ -61,7 +62,16 @@ docker {
                 }
             }
         }
-    }
-  }
 	  
-  
+        stage ('Deploy helm java helm chart on eks') {
+		 steps {
+		   scripts {
+		     sh ('aws eks update-kubeconfig --name demo-eks-cluster --region us-east-1')
+			 sh " kubectl get ns"
+			 sh "helm install java ./java-chart"
+			   
+			      }
+			}
+		}
+	}
+}

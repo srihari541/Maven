@@ -1,10 +1,8 @@
 pipeline {
-  agent {
-docker {
-      image 'srihari541/maven-srihari-docker-agent:v1'
-      args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // mount Docker socket to access the host's Docker daemon
+  agent any
+environment {
+     DOCKER_IMAGE = "srihari541/ultimate-cicd:${BUILD_NUMBER}"   
     }
-}
   stages {
     stage('Checkout') {
       steps {
@@ -41,22 +39,22 @@ docker {
       }
     }
      stage('Build Docker Image') {
-      steps {
-        DOCKER_IMAGE = "srihari541/ultimate-cicd:${BUILD_NUMBER}"
-        // DOCKERFILE_LOCATION = "spring-boot-app/Dockerfile"
-        REGISTRY_CREDENTIALS = credentials('docker-cred')
-        sh '''
-		cd spring-boot-app && docker build -t ${DOCKER_IMAGE} .
-		'''
+      steps { 
+       
+	script {
+	  
+          sh '''
+            cd sprint-boot-app && docker build -t ${DOCKER_IMAGE} . '
+	    
+	}
       }
-	 }
+ }
 	  stage('Scan Docker Image with Trivy') {
             steps {
                 script {
                     echo "Running Trivy vulnerability scan..."
-                    // FAILS build if HIGH/CRITICAL found
                     sh '''
-                        trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                        trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress ${DOCKER_IMAGE}
                     '''
                 }
             }

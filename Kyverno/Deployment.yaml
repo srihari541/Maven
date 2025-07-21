@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: srihari-deployment
+  name: sriharideployment
   labels:
     app: java-app
 spec:
@@ -15,7 +15,7 @@ spec:
         app: java-app
     spec:
       containers:
-      - name: Sriultimateimage
+      - name: sriultimateimage
         image: ultimate-cicd:56
         ports:
         - containerPort: 80

@@ -18,5 +18,5 @@ spec:
       - name: sriultimateimage
         image: ultimate-cicd:1
         ports:
-        - containerPort: 80
+        - containerPort: 8080
 
